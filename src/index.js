@@ -11,10 +11,11 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
-  ViewPagerAndroid,
   Platform,
   ActivityIndicator
 } from 'react-native'
+
+import ViewPagerAndroid from '@react-native-community/viewpager';
 
 const { width, height } = Dimensions.get('window')
 
