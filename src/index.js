@@ -184,8 +184,13 @@ export default class extends Component {
   loopJumpTimer = null
 
   componentWillReceiveProps (nextProps) {
-    if (!nextProps.autoplay && this.autoplayTimer) clearTimeout(this.autoplayTimer)
-    this.setState(this.initState(nextProps))
+    if (!nextProps.autoplay && this.autoplayTimer) {
+      clearTimeout(this.autoplayTimer)
+      this.setState(this.initState(nextProps))
+    } else if(nextProps.autoplay){
+      this.autoplay(nextProps.autoplay);
+      this.loopJump();
+    }
   }
 
   componentDidMount () {
@@ -271,9 +276,10 @@ export default class extends Component {
   /**
    * Automatic rolling
    */
-  autoplay = () => {
+  autoplay = (autoplay) => {
+    const toggleAutoplay = this.props.autoplay || autoplay;
     if (!Array.isArray(this.props.children) ||
-      !this.props.autoplay ||
+      !toggleAutoplay ||
       this.internals.isScrolling ||
       this.state.autoplayEnd) return
 
