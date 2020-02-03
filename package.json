@@ -5,10 +5,11 @@
     "react-native",
     "ios"
   ],
-  "version": "1.5.10",
+  "version": "1.6.0-nightly.4",
   "description": "Swiper component for React Native.",
   "main": "index.js",
   "scripts": {
+    "commit": "npx git-cz",
     "start": "react-native start",
     "lint": "standard | snazzy",
     "update": "updtr",
@@ -46,20 +47,25 @@
     "url": "git+https://github.com/leecade/react-native-swiper.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/leecade/react-native-swiper/issues"
   },
   "homepage": "https://github.com/leecade/react-native-swiper#readme",
   "devDependencies": {
-    "babel-eslint": "^7.1.1",
+    "babel-eslint": "^8.0.1",
     "rimraf": "^2.5.4",
-    "snazzy": "^5.0.0",
-    "standard": "^8.5.0",
-    "updtr": "^0.2.3"
+    "snazzy": "^7.1.0",
+    "standard": "^13.0.1",
+    "updtr": "^2.0.0"
   },
   "dependencies": {
     "@react-native-community/viewpager": "^3.3.0",
     "prop-types": "^15.5.10"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }
