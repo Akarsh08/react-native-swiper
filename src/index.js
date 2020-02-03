@@ -15,6 +15,10 @@ import {
   ActivityIndicator
 } from 'react-native'
 
+import ViewPagerAndroid from '@react-native-community/viewpager';
+
+const { width, height } = Dimensions.get('window')
+
 /**
  * Default styles
  * @type {StyleSheetPropType}
@@ -196,13 +200,14 @@ export default class extends Component {
   autoplayTimer = null
   loopJumpTimer = null
 
-  componentWillReceiveProps(nextProps) {
-    if (!nextProps.autoplay && this.autoplayTimer)
+  componentWillReceiveProps (nextProps) {
+    if (!nextProps.autoplay && this.autoplayTimer) {
       clearTimeout(this.autoplayTimer)
-    if (nextProps.index === this.props.index) return
-    this.setState(
-      this.initState(nextProps, this.props.index !== nextProps.index)
-    )
+      this.setState(this.initState(nextProps))
+    } else if(nextProps.autoplay){
+      this.autoplay(nextProps.autoplay);
+      this.loopJump();
+    }
   }
 
   componentDidMount() {
@@ -344,10 +349,11 @@ export default class extends Component {
   /**
    * Automatic rolling
    */
-  autoplay = () => {
-    if (
-      !Array.isArray(this.state.children) ||
-      !this.props.autoplay ||
+
+  autoplay = (autoplay) => {
+    const toggleAutoplay = this.props.autoplay || autoplay;
+    if (!Array.isArray(this.props.children) ||
+      !toggleAutoplay ||
       this.internals.isScrolling ||
       this.state.autoplayEnd
     )
