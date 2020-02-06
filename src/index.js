@@ -197,8 +197,13 @@ export default class extends Component {
   loopJumpTimer = null
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (!nextProps.autoplay && this.autoplayTimer)
+    if (!nextProps.autoplay && this.autoplayTimer){
       clearTimeout(this.autoplayTimer)
+    }
+    // if (nextProps.index === this.props.index) return
+    // this.setState(
+    //   this.initState(nextProps, this.props.index !== nextProps.index)
+    // )
   }
 
   componentDidMount() {
@@ -301,11 +306,7 @@ export default class extends Component {
 
     // only update the offset in state if needed, updating offset while swiping
     // causes some bad jumping / stuttering
-    if (
-      !this.state.offset ||
-      width !== this.state.width ||
-      height !== this.state.height
-    ) {
+    if (!this.state.offset) {
       state.offset = offset
     }
 
@@ -325,10 +326,34 @@ export default class extends Component {
     const i = this.state.index + (this.props.loop ? 1 : 0)
     const scrollView = this.scrollView
     this.loopJumpTimer = setTimeout(
-      () =>
-        scrollView.setPageWithoutAnimation &&
-        scrollView.setPageWithoutAnimation(i),
-      50
+      () => {
+        if (scrollView.setPageWithoutAnimation) {
+          scrollView.setPageWithoutAnimation(i)
+        } else {
+          if (this.state.index === 0) {
+            scrollView.scrollTo(
+              this.props.horizontal === false
+                ? { x: 0, y: this.state.height, animated: false }
+                : { x: this.state.width, y: 0, animated: false }
+            )
+          } else if (this.state.index === this.state.total - 1) {
+            this.props.horizontal === false
+              ? this.scrollView.scrollTo({
+                  x: 0,
+                  y: this.state.height * this.state.total,
+                  animated: false
+                })
+              : this.scrollView.scrollTo({
+                  x: this.state.width * this.state.total,
+                  y: 0,
+                  animated: false
+                })
+          }
+        }
+      },
+      // Important Parameter
+      // ViewPager 50ms, ScrollView 300ms
+      scrollView.setPageWithoutAnimation ? 50 : 300
     )
   }
 
@@ -393,11 +418,10 @@ export default class extends Component {
     this.updateIndex(e.nativeEvent.contentOffset, this.state.dir, () => {
       this.autoplay()
       this.loopJump()
-
-      // if `onMomentumScrollEnd` registered will be called here
-      this.props.onMomentumScrollEnd &&
-        this.props.onMomentumScrollEnd(e, this.fullState(), this)
     })
+    // if `onMomentumScrollEnd` registered will be called here
+    this.props.onMomentumScrollEnd &&
+      this.props.onMomentumScrollEnd(e, this.fullState(), this)
   }
 
   /*
@@ -428,36 +452,6 @@ export default class extends Component {
   updateIndex = (offset, dir, cb) => {
     const state = this.state
     // Android ScrollView will not scrollTo certain offset when props change
-    const callback = async () => {
-      cb()
-      if (Platform.OS === 'android') {
-        if (this.state.index === 0) {
-          this.props.horizontal
-            ? this.scrollView.scrollTo({
-                x: state.width,
-                y: 0,
-                animated: false
-              })
-            : this.scrollView.scrollTo({
-                x: 0,
-                y: state.height,
-                animated: false
-              })
-        } else if (this.state.index === this.state.total - 1) {
-          this.props.horizontal
-            ? this.scrollView.scrollTo({
-                x: state.width * this.state.total,
-                y: 0,
-                animated: false
-              })
-            : this.scrollView.scrollTo({
-                x: 0,
-                y: state.height * this.state.total,
-                animated: false
-              })
-        }
-      }
-    }
     let index = state.index
     if (!this.internals.offset)
       // Android not setting this onLayout first? https://github.com/leecade/react-native-swiper/issues/582
@@ -503,14 +497,14 @@ export default class extends Component {
         newState.offset = { x: 0, y: 0 }
         newState.offset[dir] = offset[dir] + 1
         this.setState(newState, () => {
-          this.setState({ offset: offset }, callback)
+          this.setState({ offset: offset }, cb)
         })
       } else {
         newState.offset = offset
-        this.setState(newState, callback)
+        this.setState(newState, cb)
       }
     } else {
-      this.setState(newState, callback)
+      this.setState(newState, cb)
     }
   }
 
@@ -823,8 +817,12 @@ export default class extends Component {
       pages = pages.map((page, i) => {
         if (loadMinimal) {
           if (
-            i >= index + loopVal - loadMinimalSize &&
-            i <= index + loopVal + loadMinimalSize
+            (i >= index + loopVal - loadMinimalSize &&
+              i <= index + loopVal + loadMinimalSize) ||
+            // The real first swiper should be keep
+            (loop && i === 1) ||
+            // The real last swiper should be keep
+            (loop && i === total - 1)
           ) {
             return (
               <View style={pageStyle} key={i}>
